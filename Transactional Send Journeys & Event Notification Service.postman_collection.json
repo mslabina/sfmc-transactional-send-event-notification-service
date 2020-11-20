@@ -1,0 +1,346 @@
+{
+	"info": {
+		"_postman_id": "280cd91a-aa0e-4c23-b142-3074d4179d6b",
+		"name": "Transactional Send Journeys & Event Notification Service",
+		"description": "A postman collection with requests suitable to trigger a Transactional Send Journey and register for the Event Notification Service.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request SFMC Token v2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2989ebf9-e1a6-4c16-b2a0-2ed8345a5f16",
+						"exec": [
+							"",
+							"var data = JSON.parse(responseBody);",
+							"",
+							"if (data.access_token) {",
+							"  tests[\"Body has accessToken\"] = true; ",
+							"  postman.setEnvironmentVariable(\"access_token\", data.access_token);",
+							"}",
+							"else {",
+							"  tests[\"Body has accessToken\"] = false;",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"client_id\":\"{{clientId}}\",\n    \"client_secret\":\"{{clientSecret}}\",\n    \"grant_type\": \"client_credentials\",\n    \"account_id\": \"{{accountId}}\"\n}"
+				},
+				"url": {
+					"raw": "{{authEndpoint}}v2/token",
+					"host": [
+						"{{authEndpoint}}v2"
+					],
+					"path": [
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transactional Messaging API - Multiple Recipients",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"definitionKey\": \"my_first_transactional_send\",\n  \"recipients\": [\n    {\n      \"contactKey\": \"[YOUR_RECIPIENT_CONTACTKEY]\",\n      \"to\": \"[YOUR_RECIPIENT_EMAIL]\",\n      \"messageKey\": \"uniquekey-for-result-retrieval-1\",\n      \"attributes\": {\n        \"FirstName\": \"John\",\n        \"LastName\": \"Doe\"\n      }\n    },\n    {\n      \"contactKey\": \"[YOUR_RECIPIENT_CONTACTKEY]\",\n      \"to\": \"[YOUR_RECIPIENT_EMAIL]\",\n      \"messageKey\": \"uniquekey-for-result-retrieval-2\",\n      \"attributes\": {\n        \"FirstName\": \"Jane\",\n        \"LastName\": \"Doe\"\n      }\n    }\n  ],\n  \"attributes\": {\n    \"GeneralInfo\": \"Something\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/messaging/v1/email/messages/",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"messaging",
+						"v1",
+						"email",
+						"messages",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transactional Messaging API - Retrieve Result",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/messaging/v1/email/messages/uniquekey-for-result-retrieval-1",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"messaging",
+						"v1",
+						"email",
+						"messages",
+						"uniquekey-for-result-retrieval-1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Event Notification Callback",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[{\n  \"callbackName\": \"callback-for-first-journey\",\n  \"url\": \"[URL_OF_YOUR_ENDPOINT]\",\n  \"maxBatchSize\": 100\n}]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/platform/v1/ens-callbacks",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"platform",
+						"v1",
+						"ens-callbacks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Event Notification Callback",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"callbackId\": \"[CALLBACKID_SENT_TO_YOUR_ENDPOINT]\",\n  \"verificationKey\": \"[VERIFICATION_KEY_SENT_TO_YOUR_ENDPOINT]\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/platform/v1/ens-verify",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"platform",
+						"v1",
+						"ens-verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Subscribe Event Notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[{\n  \"callbackId\": \"[CALLBACKID_SENT_TO_YOUR_ENDPOINT]\",\n  \"subscriptionName\": \"transactional send journey test\",\n  \"eventCategoryTypes\": [\"TransactionalSendEvents.EmailNotSent\",\n  \"TransactionalSendEvents.EmailSent\"],\n  \"filters\": [\"definitionKey=my_first_transactional_send\"]\n}]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/platform/v1/ens-subscriptions",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"platform",
+						"v1",
+						"ens-subscriptions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Subscriptions for Callback",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/platform/v1/ens-subscriptions-by-cb/[CALLBACKID_SENT_TO_YOUR_ENDPOINT]",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"platform",
+						"v1",
+						"ens-subscriptions-by-cb",
+						"[CALLBACKID_SENT_TO_YOUR_ENDPOINT]"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Subscriptions for Callback",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostEndpoint}}/platform/v1/ens-subscriptions/[SUBSCRIPTIONID_YOU_RECEIVED]",
+					"host": [
+						"{{hostEndpoint}}"
+					],
+					"path": [
+						"platform",
+						"v1",
+						"ens-subscriptions",
+						"[SUBSCRIPTIONID_YOU_RECEIVED]"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"protocolProfileBehavior": {}
+}
